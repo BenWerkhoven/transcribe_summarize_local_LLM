@@ -19,7 +19,7 @@ def calc_tokes(system_prompt, prompt, input, n_words_output):
     n_tokens_total = n_tokens_system_prompt + n_tokens_prompt + n_tokens_input + n_words_output
     return n_tokens_total
 
-path_root = Path.cwd() #/ "speech-to-text"
+path_root = Path.cwd() / "speech-to-text"
 project_folder = path_root / "Marcel 6 november 2026"
 text_file = "transcript_26-10 gesprek Marcel .txt"
 text_file_path = project_folder / text_file
@@ -31,28 +31,7 @@ transcript_tokens = nltk.tokenize.word_tokenize(text=transcript,language='dutch'
 system_prompt = load_txt_file(path_root / "prompt_system.txt")
 
 # Explain clearly which subjects need to be discussed in the summary
-
-# Onderwerpen voor gesprek van 25 oktober
-#onderwerpen = '''
-# 1. de eisen en wensen die ze hebben voor woning waarin de moeder en haar vriend oud willen worden
-# 2. hoe verschillende opties, zoals de winkel verbouwen, blijven wonen waar ze nu wonen of iets anders zoeken, hieraan kunnen voldoen
-#
-#'''
-#onderwerpen = '''
-# 1. de overwegingen van de kinderen om wel of niet in het huis van de moeder te willen wonen als zij daar weg zou gaan
-# 2. Verschillende (financiele) constructies die mogelijk zijn om het huis als erfenis over de kinderen te verdelen, ook als een van de kinderen erin zou gaan wonen
-#
-#'''
-#onderwerpen = '''
-# 1. de overwegingen van de kinderen om wel of niet in het huis van de moeder te willen wonen als zij daar weg zou gaan
-# 2. Verschillende (financiele) constructies die mogelijk zijn om het huis als erfenis over de kinderen te verdelen, ook als een van de kinderen erin zou gaan wonen
-#
-#'''
-onderwerpen = '''
- 1. Als Mieke in haar huidige huis op de Hamlaan wil blijven wonen, wat is dan het advies wel en wat niet te doen?
- 2. Als Mieke het oude winkelpand van haar vriend Hans wil laten verbouwen, wat is dan het advies wel en wat niet te doen?
- 3. Als een van de kinderen in het huidige huis op de Hamlaan wil wonen, wat is dan het advies wel en wat niet te doen?
-'''
+onderwerpen = load_txt_file(project_folder / "onderwerpen.txt")
 
 # Mapping prompt: prompt used when summarising chuncks of the transcript
 prompt_map = load_txt_file(project_folder / "prompt_map.txt")
@@ -69,7 +48,6 @@ response = chat(
     #model="llama3.2:latest",
     model="gemma4:e2b",
     #model="mistral:7b",
-    #options = {"num_ctx": 2500},
     options={"temperature": 0, "num_ctx": 4250},
     messages=[
         {
@@ -95,10 +73,9 @@ print(response["message"]["content"])
 summaries = []
 n_chuncks = int(len(transcript_tokens)/chunck_length)
 for i in range(n_chuncks):
-#for i in range(2):
     print(f"Chunk: {i} of {n_chuncks-1}")
     transcript_chunk = " ".join(transcript_tokens[chunck_length*i:chunck_length*(i+1)]).replace(" ,",",").replace(" .",".")
-    n_tokens_total = calc_tokes(system_prompt=system_prompt, prompt=prompt_map, input=summaries_chuncks, n_words_output=length_summary)
+    n_tokens_total = calc_tokes(system_prompt=system_prompt, prompt=prompt_map, input=transcript_chunk, n_words_output=length_summary)
     print(n_tokens_total)
     if n_tokens_total>2800:
         print("Waarschuwing: mogelijk te veel tokens, check output")
